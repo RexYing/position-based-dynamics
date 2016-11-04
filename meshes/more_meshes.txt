@@ -1,0 +1,4 @@
+Wavefront OBJ is a widely used file format for storing 3D models. As a result,
+you can find a lot more meshes in OBJ format online, for example, checkout
+http://graphics.stanford.edu/data/3Dscanrep
+for some of the most celebrated 3D models in computer graphics. Be creative!
