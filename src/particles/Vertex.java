@@ -10,14 +10,21 @@ import javax.vecmath.Point3d;
  */
 public class Vertex extends Particle {
 
-    /** A list of incident edges. See Mesh.java for details. */
-    public ArrayList<Edge> edges = new ArrayList<Edge>();
+  /** A list of incident edges. See Mesh.java for details. */
+  public ArrayList<Edge> edges = new ArrayList<Edge>();
 
-    /** Default constructor.
-     * @param x0 The initial position of the Vertex.
-     */
-    public Vertex(Point3d x0) {
-	super(x0);
-    }
+  /**
+   * Default constructor.
+   * 
+   * @param x0
+   *          The initial position of the Vertex.
+   */
+  public Vertex(Point3d x0) {
+    super(x0);
+  }
+  
+  public Vertex(Point3d x0, int index) {
+    super(x0, index);
+  }
 
 }

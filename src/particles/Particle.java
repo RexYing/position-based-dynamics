@@ -23,28 +23,46 @@ public class Particle
 
     /** Default mass. */
     double   m = Constants.PARTICLE_MASS;
+    
+    /** The index of this particle in its particle system. */
+    private final int index;
 
     /** Deformed Position. */
     Point3d  x = new Point3d();
+
+    /** Change in position to be applied */
+    private Vector3d dx = new Vector3d();
 
     /** Undeformed/material Position. */
     Point3d  x0 = new Point3d();
 
     /** Velocity. */
-    Vector3d v = new Vector3d();
+    public final Vector3d v = new Vector3d();
+    
+    /** Change in velocity to be applied */
+    private Vector3d dv = new Vector3d();
 
     /** Force accumulator. */
     Vector3d f = new Vector3d();
+    
+    /** Change in force to be applied */
+    private Vector3d df = new Vector3d();
 
     /**
-     * Constructs particle with the specified material/undeformed
-     * coordinate, x0.
-     */
-    Particle(Point3d x0)
-    {
-        this.x0.set(x0);
-        x.set(x0);
-    }
+    * Constructs particle with the specified material/undeformed
+    * coordinate, x0.
+    */
+   public Particle(Point3d x0, int index)
+   {
+       this.x0.set(x0);
+       x.set(x0);
+       this.index = index;
+   }
+   
+   public Particle(Point3d x0)
+   {
+       this(x0, 0);
+   }
 
     /** Draws spherical particle using a display list. */
     public void display(GL2 gl)
@@ -90,5 +108,34 @@ public class Particle
     /** True if particle should be drawn highlighted. */
     public boolean getHighlight() {
         return highlight;
+    }
+    
+    /**
+     * @return the index of the particle in its particle system.
+     */
+    public int getIndex() {
+      return index;
+    }
+    
+    public void addPos(Vector3d dx) {
+      this.dx.add(dx);
+    }
+    
+    public void addVelocity(Vector3d dv) {
+      this.dv.add(dv);
+    }
+    
+    public void addForce(Vector3d df) {
+      this.df.add(df);
+    }
+    
+    public void applyChanges() {
+      x.add(dx);
+      v.add(dv);
+      f.add(df);
+      
+      dx = new Vector3d();
+      dv = new Vector3d();
+      df = new Vector3d();
     }
 }

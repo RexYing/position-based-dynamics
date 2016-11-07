@@ -23,53 +23,55 @@ import javax.vecmath.Vector3d;
  * @author Eston Schweickart, February 2014
  */
 public class Edge {
-    
-    /** The first vertex that defines this edge. */
-    public Vertex v0;
-    /** The second vertex that defines this edge. */
-    public Vertex v1;
-    
-    /** The triangle on one side of the this edge. */
-    public Triangle t0;
-    /** The triangle on the other side of the this edge. */
-    public Triangle t1;
 
-    /** The length of this edge at rest. */
-    public double restLength;
+  /** The first vertex that defines this edge. */
+  public Vertex v0;
+  /** The second vertex that defines this edge. */
+  public Vertex v1;
 
-    // TODO: define other edge-specific parameters here.
+  /** The triangle on one side of the this edge. */
+  public Triangle t0;
+  /** The triangle on the other side of the this edge. */
+  public Triangle t1;
 
-    /**
-     * The constructor for an edge given the input vertices.
-     * Pointers from the verties to this edge are automatically added,
-     * but Triangle pointers must be set separately.
-     */
-    public Edge(Vertex v0, Vertex v1) {
-	this.v0 = v0;
-	this.v1 = v1;
+  /** The length of this edge at rest. */
+  public double restLength;
 
-	v0.edges.add(this);
-	v1.edges.add(this);
+  // TODO: define other edge-specific parameters here.
 
-	Vector3d edge = new Vector3d();
-	edge.sub(v1.x0, v0.x0);
-	restLength = edge.length();
-    }
+  /**
+   * The constructor for an edge given the input vertices. Pointers from the
+   * verties to this edge are automatically added, but Triangle pointers must be
+   * set separately.
+   */
+  public Edge(Vertex v0, Vertex v1) {
+    this.v0 = v0;
+    this.v1 = v1;
 
-    /** Returns the current length of this edge. */
-    public double length() {
-	Vector3d edge = new Vector3d();
-	edge.sub(v1.x, v0.x);
-	return edge.length();
-    }
+    v0.edges.add(this);
+    v1.edges.add(this);
 
-    /** 
-     * Given one of the end vertices of this edge, returns the other.
-     * If the given vertex is not part of this edge, returns null instead.
-     */
-    public Vertex getOtherVertex(Vertex self) {
-	if (self == v0) return v1;
-	if (self == v1) return v0;
-	return null;
-    }
+    Vector3d edge = new Vector3d();
+    edge.sub(v1.x0, v0.x0);
+    restLength = edge.length();
+  }
+
+  /** Returns the current length of this edge. */
+  public double length() {
+    Vector3d edge = new Vector3d();
+    edge.sub(v1.x, v0.x);
+    return edge.length();
+  }
+
+  /**
+   * Given one of the end vertices of this edge, returns the other. If the given
+   * vertex is not part of this edge, returns null instead.
+   */
+  public Vertex getOtherVertex(Vertex self) {
+    if (self == v0)
+      return v1;
+    if (self == v1)
+      return v0;
+    return null;
+  }
 }
