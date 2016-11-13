@@ -21,7 +21,7 @@ public class Gravity implements Force {
   @Override
   public void applyForce() {
     for (Particle p : ps.P) {
-      p.addForce(new Vector3d(0, -GRAV_CONST * Constants.PARTICLE_MASS, 0));
+      p.addForce(new Vector3d(0, -GRAV_CONST * p.m, 0));
     }
   }
 

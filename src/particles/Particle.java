@@ -22,13 +22,15 @@ public class Particle
     private boolean highlight = false;
 
     /** Default mass. */
-    double   m = Constants.PARTICLE_MASS;
+    public double m = Constants.PARTICLE_MASS;
     
     /** The index of this particle in its particle system. */
     private final int index;
 
     /** Deformed Position. */
-    Point3d  x = new Point3d();
+    public Point3d  x = new Point3d();
+    
+    Point3d  xPrev = new Point3d();
 
     /** Change in position to be applied */
     private Vector3d dx = new Vector3d();

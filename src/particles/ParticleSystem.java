@@ -161,34 +161,40 @@ public class ParticleSystem // implements Serializable
    * "Position Based Fluids" integrator here
    */
   public synchronized void advanceTime(double dt) {
-    /// Clear force accumulators:
-    for (Particle p : P)
-      p.f.set(0, 0, 0);
-
-    {/// Gather forces: (TODO)
+    
+    double dtIter = dt / Constants.NUM_SOLVER_ITERATIONS;
+    for (int i = 0; i < Constants.NUM_SOLVER_ITERATIONS; i++) {
+      
+      for (Mesh mesh : M) {
+        mesh.updateMass();
+      }
+      /// Clear force accumulators:
+      for (Particle p : P) {
+        p.f.set(0, 0, 0);
+        p.xPrev = new Point3d(p.x);
+      }
+      
       for (Force force : F) {
         force.applyForce();
       }
+      
+      for (Particle p : P) {
+        Point3d prev = new Point3d(p.x);
+        p.applyChanges();
+        p.v.scaleAdd(dtIter, p.f, p.v); // p.v += dt * p.f;
+        p.x.scaleAdd(dtIter, p.v, p.x); // p.x += dt * p.v;
 
-    }
+        for (Mesh mesh : staticMeshes) {
+          mesh.segmentIntersects(prev, p);
+        }
+      }
 
-    /// TIME-STEP: (Symplectic Euler for now):
-    for (Particle p : P) {
-      p.applyChanges();
-      p.v.scaleAdd(dt, p.f, p.v); // p.v += dt * p.f;
-      p.x.scaleAdd(dt, p.v, p.x); // p.x += dt * p.v;
     }
     
-    for (Mesh mesh : M) {
-      
-    }
-
+    
     time += dt;
   }
   
-  private void handleCollisionWithStaticMesh(Mesh m1) {
-    
-  }
 
   /**
    * Displays Particle and Force objects. Modify how you like.

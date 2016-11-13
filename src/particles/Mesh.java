@@ -33,6 +33,17 @@ import pqp.PQP_Model;
  * @author Eston Schweickart, February 2014
  */
 public class Mesh {
+  
+  static {
+    /*
+     * Need the library (libPQP.so in Linux, PQP.dll in Windows) to be put
+     * into java library path. In Linux, it is the LD_LIBRARY_PATH; in
+     * Windows, it is the PATH variable. Check using:
+     * System.getProperty("java.library.path");
+     */
+    System.loadLibrary("PQP");
+  }
+
 
   private boolean init = false;
   private boolean fallback = false;
@@ -62,8 +73,10 @@ public class Mesh {
 
   /** The shader program used by the mesh. */
   private ShaderProgram prog;
-  
+
   private PQP_Model pqpModel;
+
+  private double damp = 0.8;
 
   /** Gets ready to display the mesh; compiles programs, etc. */
   private void initDisplay(GL2 gl) {
@@ -71,10 +84,8 @@ public class Mesh {
       return;
 
     prog = new ShaderProgram();
-    ShaderCode vertCode = ShaderCode.create(gl, GL2ES2.GL_VERTEX_SHADER, 1, this.getClass(),
-            VERT_SOURCE, false);
-    ShaderCode fragCode = ShaderCode.create(gl, GL2ES2.GL_FRAGMENT_SHADER, 1, this.getClass(),
-            FRAG_SOURCE, false);
+    ShaderCode vertCode = ShaderCode.create(gl, GL2ES2.GL_VERTEX_SHADER, 1, this.getClass(), VERT_SOURCE, false);
+    ShaderCode fragCode = ShaderCode.create(gl, GL2ES2.GL_FRAGMENT_SHADER, 1, this.getClass(), FRAG_SOURCE, false);
     if (!prog.add(gl, vertCode, System.err) || !prog.add(gl, fragCode, System.err)) {
       System.err.println("WARNING: shader did not compile");
       useGLSL = false;
@@ -126,58 +137,59 @@ public class Mesh {
      * gl.glVertex3d(e.v1.x.x, e.v1.x.y, e.v1.x.z); gl.glEnd(); }
      */
   }
-  
+
   private PQP_Model buildPQPModel(List<Vertex> vertices, List<Triangle> triangles) {
     PQP_Model model = new PQP_Model();
     model.BeginModel();
-   
+
     List<Point3d> pts = new ArrayList<>();
     List<Tuple3i> faces = new ArrayList<>();
-    
+
     for (Vertex vertex : vertices) {
       pts.add(vertex.x);
     }
-    
+
     for (Triangle triangle : triangles) {
-      faces.add(new Point3i(
-          triangle.v0.getIndex(), triangle.v1.getIndex(), triangle.v2.getIndex()));
+      faces.add(new Point3i(triangle.v0.getIndex(), triangle.v1.getIndex(), triangle.v2.getIndex()));
     }
-    
+
     return PQPHelper.buildPQPModel(pts, faces);
   }
-  
+
   /**
-   * Build internal structures for collision detection after updating vertices and triangular faces
+   * Build internal structures for collision detection after updating vertices
+   * and triangular faces
    */
   public void update() {
     pqpModel = buildPQPModel(vertices, triangles);
   }
 
-  public Collision segmentIntersects(Point3d p1, Point3d p2) {
+  public Collision segmentIntersectsPQP(Point3d p1, Point3d p2) {
     List<Point3d> tmpV = new ArrayList<>();
     tmpV.add(p1);
     tmpV.add(p1);
     tmpV.add(p2);
     List<Tuple3i> tmpF = new ArrayList<>();
     tmpF.add(new Point3i(0, 1, 2));
-    
+
     Tuple2i faceIdxPair = PQPHelper.simpleCollide(pqpModel, PQPHelper.buildPQPModel(tmpV, tmpF));
-    
+
     if (faceIdxPair == null) {
       return null;
     } else {
       // index does not make sense
       if (faceIdxPair.x >= triangles.size() || faceIdxPair.x < 0) {
         System.out.println("index");
-        //return null;
+        // return null;
         return new Collision(p1, p2, 0, new Vector3d());
       }
       return new Collision(p1, p2, 0, triangles.get(faceIdxPair.x).getNormal());
     }
   }
-  
+
   /**
    * Collision with a static mesh
+   * 
    * @param staticMesh
    * @return
    */
@@ -188,7 +200,7 @@ public class Mesh {
     }
     Map<Vertex, Triangle> potentialCollisions = new HashMap<>();
     for (Tuple2i faceIdxPair : faceIdxPairs) {
-      Triangle f1 = triangles.get(faceIdxPair.x); 
+      Triangle f1 = triangles.get(faceIdxPair.x);
       Triangle f2 = staticMesh.triangles.get(faceIdxPair.y);
       potentialCollisions.put(f1.v0, f2);
       potentialCollisions.put(f1.v1, f2);
@@ -196,7 +208,59 @@ public class Mesh {
     }
     return potentialCollisions;
   }
+
+  /**
+   * Update particle velocity if it collides with this mesh.
+   */
+  public boolean segmentIntersects(Point3d p1, Particle particle) {
+
+    List<Point3d> tmpV = new ArrayList<>();
+    tmpV.add(p1);
+    tmpV.add(p1);
+    tmpV.add(particle.x);
+    List<Tuple3i> tmpF = new ArrayList<>();
+    tmpF.add(new Point3i(0, 1, 2));
+
+    Tuple2i faceIdxPair = PQPHelper.simpleCollide(pqpModel, PQPHelper.buildPQPModel(tmpV, tmpF));
+    if (faceIdxPair != null) {
+
+      // index does not make sense
+      if (faceIdxPair.x >= vertices.size() || faceIdxPair.x < 0) {
+        System.out.println("index");
+        particle.v.negate();
+        particle.v.scale(damp);
+      } else {
+        Vector3d direction = new Vector3d();
+        direction.sub(particle.x, p1);
+        direction.normalize();
+        Vector3d normal = triangles.get(faceIdxPair.x).getNormal();
+        Vector3d v = new Vector3d(normal);
+        v.scale(direction.dot(normal) * 2);
+        Vector3d reflectedDirection = new Vector3d();
+        reflectedDirection.sub(direction, v);
+        reflectedDirection.normalize();
+        particle.v.scale(particle.v.length() * damp, reflectedDirection);
+        particle.x = new Point3d(p1);
+      }
+      return true;
+    } else {
+      return false;
+    }
+  }
   
+  public void updateMass() {
+
+    for (Vertex vertex : vertices) {
+      vertex.m = 0;
+    }
+    for (Triangle triangle : triangles) {
+      double area = triangle.area();
+      triangle.v0.m += area / 3 * Constants.CLOTH_DENSITY;
+      triangle.v1.m += area / 3 * Constants.CLOTH_DENSITY;
+      triangle.v2.m += area / 3 * Constants.CLOTH_DENSITY;
+    }
+  }
+
   public static Mesh CubeMesh(Point3d lowV, Point3d highV) {
     List<Vertex> verts = new ArrayList<>();
     verts.add(new Vertex(new Point3d(lowV), 0));
@@ -207,7 +271,7 @@ public class Mesh {
     verts.add(new Vertex(new Point3d(highV.x, lowV.y, highV.z), 5));
     verts.add(new Vertex(new Point3d(highV.x, highV.y, lowV.z), 6));
     verts.add(new Vertex(new Point3d(highV), 7));
-    
+
     List<Triangle> faces = new ArrayList<>();
     faces.add(new Triangle(verts.get(0), verts.get(1), verts.get(2)));
     faces.add(new Triangle(verts.get(2), verts.get(1), verts.get(3)));
@@ -221,7 +285,7 @@ public class Mesh {
     faces.add(new Triangle(verts.get(2), verts.get(3), verts.get(7)));
     faces.add(new Triangle(verts.get(4), verts.get(7), verts.get(5)));
     faces.add(new Triangle(verts.get(4), verts.get(6), verts.get(7)));
-    
+
     Mesh mesh = new Mesh();
     mesh.vertices = verts;
     mesh.triangles = faces;

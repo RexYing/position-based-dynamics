@@ -14,4 +14,8 @@ public interface Constants
     /** Camera rotation speed constants. */
     public static final double CAM_SIN_THETA     = Math.sin(0.2);
     public static final double CAM_COS_THETA     = Math.cos(0.2);
+    
+    public static final double NUM_SOLVER_ITERATIONS = 10;
+    
+    public static final double CLOTH_DENSITY     = 10;
 }
