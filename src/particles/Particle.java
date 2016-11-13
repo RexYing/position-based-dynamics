@@ -39,7 +39,7 @@ public class Particle
     Point3d  x0 = new Point3d();
 
     /** Velocity. */
-    public final Vector3d v = new Vector3d();
+    public Vector3d v = new Vector3d();
     
     /** Change in velocity to be applied */
     private Vector3d dv = new Vector3d();

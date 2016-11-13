@@ -5,6 +5,7 @@ import javax.vecmath.*;
 import com.jogamp.opengl.*;
 import com.jogamp.opengl.util.glsl.*;
 
+import forces.CollisionConstraint;
 import forces.Force;
 import particles.Particle;
 
@@ -27,12 +28,14 @@ public class ParticleSystem // implements Serializable
 
   /** Mesh list. */
   public ArrayList<Mesh> M = new ArrayList<Mesh>();
-  
+
   /** Static meshes for collision detection only */
   private List<Mesh> staticMeshes = new ArrayList<>();
 
   /** List of Force objects. */
   public ArrayList<Force> F = new ArrayList<Force>();
+
+  public List<Force> constraints = new ArrayList<>();
 
   /**
    * true iff prog has been initialized. This cannot be done in the constructor
@@ -62,10 +65,8 @@ public class ParticleSystem // implements Serializable
       return;
 
     prog = new ShaderProgram();
-    ShaderCode vert_code = ShaderCode.create(gl, GL2ES2.GL_VERTEX_SHADER, 1, this.getClass(),
-            VERT_SOURCE, false);
-    ShaderCode frag_code = ShaderCode.create(gl, GL2ES2.GL_FRAGMENT_SHADER, 1, this.getClass(),
-            FRAG_SOURCE, false);
+    ShaderCode vert_code = ShaderCode.create(gl, GL2ES2.GL_VERTEX_SHADER, 1, this.getClass(), VERT_SOURCE, false);
+    ShaderCode frag_code = ShaderCode.create(gl, GL2ES2.GL_FRAGMENT_SHADER, 1, this.getClass(), FRAG_SOURCE, false);
     if (!prog.add(gl, vert_code, System.err) || !prog.add(gl, frag_code, System.err)) {
       System.err.println("WARNING: shader did not compile");
       prog.init(gl); // Initialize empty program
@@ -161,40 +162,56 @@ public class ParticleSystem // implements Serializable
    * "Position Based Fluids" integrator here
    */
   public synchronized void advanceTime(double dt) {
-    
-    double dtIter = dt / Constants.NUM_SOLVER_ITERATIONS;
-    for (int i = 0; i < Constants.NUM_SOLVER_ITERATIONS; i++) {
-      
-      for (Mesh mesh : M) {
-        mesh.updateMass();
-      }
-      /// Clear force accumulators:
-      for (Particle p : P) {
-        p.f.set(0, 0, 0);
-        p.xPrev = new Point3d(p.x);
-      }
-      
-      for (Force force : F) {
-        force.applyForce();
-      }
-      
-      for (Particle p : P) {
-        Point3d prev = new Point3d(p.x);
-        p.applyChanges();
-        p.v.scaleAdd(dtIter, p.f, p.v); // p.v += dt * p.f;
-        p.x.scaleAdd(dtIter, p.v, p.x); // p.x += dt * p.v;
 
-        for (Mesh mesh : staticMeshes) {
-          mesh.segmentIntersects(prev, p);
+    double dtIter = dt / Constants.NUM_SOLVER_ITERATIONS;
+
+    /// Clear force accumulators:
+    for (Particle p : P) {
+      p.f.set(0, 0, 0);
+      p.xPrev = new Point3d(p.x);
+    }
+
+    for (Mesh mesh : M) {
+      mesh.updateMass();
+    }
+
+    for (Force force : F) {
+      force.applyForce();
+    }
+
+    List<Force> collisionConstraints = new ArrayList<>();
+
+    for (Particle p : P) {
+      p.applyChanges();
+      Vector3d acc = new Vector3d(p.f);
+      acc.scale(1.0 / p.m);
+      p.v.scaleAdd(dt, acc, p.v); // p.v += dt * p.f;
+      p.x.scaleAdd(dt, p.v, p.x); // p.x += dt * p.v;
+
+      for (Mesh mesh : staticMeshes) {
+        CollisionConstraint collisionConstraint = mesh.segmentIntersects(p.xPrev, p);
+        if (collisionConstraint != null) {
+          collisionConstraints.add(collisionConstraint);
         }
+      }
+    }
+
+    for (int i = 0; i < Constants.NUM_SOLVER_ITERATIONS; i++) {
+      for (Force c : collisionConstraints) {
+        c.applyForce();
       }
 
     }
     
-    
+    for (Particle p : P) {
+      Vector3d dp = new Vector3d();
+      dp.sub(p.x, p.xPrev);
+      dp.scale(1.0 / dt);
+      p.v = dp;
+    }
+
     time += dt;
   }
-  
 
   /**
    * Displays Particle and Force objects. Modify how you like.
@@ -214,7 +231,7 @@ public class ParticleSystem // implements Serializable
     }
     prog.useProgram(gl, false);
   }
-  
+
   public void addStaticMesh(Mesh m) {
     staticMeshes.add(m);
   }

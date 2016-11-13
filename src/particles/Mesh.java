@@ -14,6 +14,7 @@ import javax.vecmath.Vector3d;
 import com.jogamp.opengl.*;
 import com.jogamp.opengl.util.glsl.*;
 
+import forces.CollisionConstraint;
 import particles.Collision;
 import particles.Mesh;
 import pqp.PQPHelper;
@@ -212,7 +213,7 @@ public class Mesh {
   /**
    * Update particle velocity if it collides with this mesh.
    */
-  public boolean segmentIntersects(Point3d p1, Particle particle) {
+  public CollisionConstraint segmentIntersects(Point3d p1, Particle particle) {
 
     List<Point3d> tmpV = new ArrayList<>();
     tmpV.add(p1);
@@ -223,7 +224,7 @@ public class Mesh {
 
     Tuple2i faceIdxPair = PQPHelper.simpleCollide(pqpModel, PQPHelper.buildPQPModel(tmpV, tmpF));
     if (faceIdxPair != null) {
-
+      /*
       // index does not make sense
       if (faceIdxPair.x >= vertices.size() || faceIdxPair.x < 0) {
         System.out.println("index");
@@ -242,9 +243,11 @@ public class Mesh {
         particle.v.scale(particle.v.length() * damp, reflectedDirection);
         particle.x = new Point3d(p1);
       }
-      return true;
+      */
+      Triangle triangle = triangles.get(faceIdxPair.x);
+      return new CollisionConstraint(particle, triangle.intersectRay(p1, particle.x), triangle);
     } else {
-      return false;
+      return null;
     }
   }
   
