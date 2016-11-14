@@ -55,8 +55,7 @@ public class PQPHelper {
     if (collideResult.Colliding() == 0) {
       return null;
     } else {
-      CollisionPair collisionPair = collideResult.getPairs();
-      return new Point2i(collisionPair.getId1(), collisionPair.getId2());
+      return new Point2i(collideResult.Id1(0), collideResult.Id2(0));
     }
   }
   

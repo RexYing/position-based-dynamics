@@ -54,6 +54,7 @@ public class ParticleSystem // implements Serializable
 
   /** Basic constructor. */
   public ParticleSystem() {
+
   }
 
   /**
@@ -80,6 +81,11 @@ public class ParticleSystem // implements Serializable
   /** Adds a force object (until removed) */
   public synchronized void addForce(Force f) {
     F.add(f);
+  }
+
+  /** Adds a force object (until removed) */
+  public synchronized void addConstraint(Force f) {
+    constraints.add(f);
   }
 
   /**
@@ -162,7 +168,7 @@ public class ParticleSystem // implements Serializable
    * "Position Based Fluids" integrator here
    */
   public synchronized void advanceTime(double dt) {
-
+    P.get(0).setHighlight(true);
     double dtIter = dt / Constants.NUM_SOLVER_ITERATIONS;
 
     /// Clear force accumulators:
@@ -197,12 +203,25 @@ public class ParticleSystem // implements Serializable
     }
 
     for (int i = 0; i < Constants.NUM_SOLVER_ITERATIONS; i++) {
-      for (Force c : collisionConstraints) {
+      for (Force c : constraints) {
         c.applyForce();
       }
 
+      collisionConstraints = new ArrayList<>();
+      for (Particle p : P) {
+        for (Mesh mesh : staticMeshes) {
+          CollisionConstraint collisionConstraint = mesh.segmentIntersects(p.xPrev, p);
+          if (collisionConstraint != null) {
+            collisionConstraints.add(collisionConstraint);
+          }
+        }
+      }
+
+      for (Force c : collisionConstraints) {
+        c.applyForce();
+      }
     }
-    
+
     for (Particle p : P) {
       Vector3d dp = new Vector3d();
       dp.sub(p.x, p.xPrev);
@@ -234,6 +253,12 @@ public class ParticleSystem // implements Serializable
 
   public void addStaticMesh(Mesh m) {
     staticMeshes.add(m);
+  }
+
+  public void applyChanges() {
+    for (Particle p : P) {
+      p.applyChanges();
+    }
   }
 
 }

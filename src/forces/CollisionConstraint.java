@@ -35,14 +35,14 @@ public class CollisionConstraint implements Force {
   public void applyForce() {
     Vector3d grad = triangle.getNormal();
     Vector3d diff = new Vector3d();
-    diff.sub(particle.x, entryPoint);
+    //diff.sub(particle.x, entryPoint);
+    diff.sub(particle.x, particle.xPrev);
     double c = diff.dot(triangle.getNormal());
     if (c >= 0) {
       return;
     }
     Vector3d dp = new Vector3d(grad);
-    dp.scale(-c / grad.lengthSquared() * k);
-    System.out.println(dp);
+    dp.scale(-c / grad.lengthSquared() * k * 1.6);
     particle.x.add(dp);
   }
 

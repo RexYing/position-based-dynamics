@@ -30,7 +30,7 @@ public class Particle
     /** Deformed Position. */
     public Point3d  x = new Point3d();
     
-    Point3d  xPrev = new Point3d();
+    public Point3d  xPrev = new Point3d();
 
     /** Change in position to be applied */
     private Vector3d dx = new Vector3d();

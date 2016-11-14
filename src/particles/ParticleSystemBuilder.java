@@ -15,6 +15,7 @@ import com.jogamp.opengl.glu.*;
 import com.jogamp.opengl.util.*;
 
 import forces.Gravity;
+import forces.StretchConstraint;
 
 /**
  * CS348C: Assignment #1: "Position Based Fluids"
@@ -67,6 +68,8 @@ public class ParticleSystemBuilder implements GLEventListener {
     PS.addStaticMesh(Mesh.CubeMesh(new Point3d(0, 0, 0), new Point3d(1, 1, 1)));
 
     PS.addForce(new Gravity(PS));
+    
+    PS.addConstraint(new StretchConstraint(PS, Constants.STRETCH_DIST, Constants.STRETCH_STIFF, 10));
   }
 
   /**

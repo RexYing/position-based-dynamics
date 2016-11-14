@@ -17,6 +17,7 @@ import com.jogamp.opengl.util.glsl.*;
 import forces.CollisionConstraint;
 import particles.Collision;
 import particles.Mesh;
+import pqp.PQP;
 import pqp.PQPHelper;
 import pqp.PQP_Model;
 
@@ -224,6 +225,10 @@ public class Mesh {
 
     Tuple2i faceIdxPair = PQPHelper.simpleCollide(pqpModel, PQPHelper.buildPQPModel(tmpV, tmpF));
     if (faceIdxPair != null) {
+      if (faceIdxPair.x >= vertices.size() || faceIdxPair.x < 0) {
+        System.out.println("index");
+        //return null;
+      }
       /*
       // index does not make sense
       if (faceIdxPair.x >= vertices.size() || faceIdxPair.x < 0) {
