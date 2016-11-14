@@ -35,7 +35,7 @@ public class StretchConstraint implements Force {
         Vector3d diff = new Vector3d();
         diff.sub(edge.v0.x, edge.v1.x);
         Vector3d dp = new Vector3d(diff);
-        dp.scale((Math.abs(diff.length()) - d) / diff.length());
+        dp.scale((Math.abs(diff.length()) - edge.restLength) / diff.length());
         double w0 = 1 / edge.v0.m;
         double w1 = 1 / edge.v1.m;
         Vector3d dp0 = new Vector3d(dp);
