@@ -40,6 +40,21 @@ public class Triangle {
     return normal;
   }
   
+  /**
+   * @return the vertex of this triangle that is neither of the parameters
+   */
+  public Vertex getDiffVertex(Vertex w0, Vertex w1) {
+    if (v0 == w0 || v0 == w1) {
+      if (v1 == w0 || v1 == w1) {
+        return v2;
+      } else {
+        return v1;
+      }
+    } else {
+      return v0;
+    }
+  }
+  
   public double area() {
     Vector3d u0 = new Vector3d();
     u0.sub(v1.x, v0.x);

@@ -18,6 +18,9 @@ public interface Constants
     public static final double NUM_SOLVER_ITERATIONS = 10;
     
     public static final double CLOTH_DENSITY     = 10;
+    
+    public static final int NUM_ITERATIONS       = 10;
     public static final double STRETCH_DIST      = 0.1;
-    public static final double STRETCH_STIFF     = 0.2;
+    public static final double STRETCH_STIFF     = 0.8;
+    public static final double BEND_STIFF        = 0.2;
 }

@@ -14,6 +14,7 @@ import com.jogamp.opengl.glu.*;
 
 import com.jogamp.opengl.util.*;
 
+import forces.BendConstraint;
 import forces.Gravity;
 import forces.StretchConstraint;
 
@@ -69,7 +70,8 @@ public class ParticleSystemBuilder implements GLEventListener {
 
     PS.addForce(new Gravity(PS));
     
-    PS.addConstraint(new StretchConstraint(PS, Constants.STRETCH_DIST, Constants.STRETCH_STIFF, 10));
+    PS.addConstraint(new StretchConstraint(PS, Constants.STRETCH_DIST, Constants.STRETCH_STIFF, Constants.NUM_ITERATIONS));
+    PS.addConstraint(new BendConstraint(PS, Constants.BEND_STIFF, Constants.NUM_ITERATIONS));
   }
 
   /**

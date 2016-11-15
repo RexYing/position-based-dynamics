@@ -46,12 +46,10 @@ public class StretchConstraint implements Force {
         //edge.v1.addPos(dp1);
         edge.v0.x.add(dp0);
         edge.v1.x.add(dp1);
-        if (edge.v0.getHighlight()) {
-          System.out.println("diff  " + diff);
+        /*if (edge.v0.getHighlight()) {
           System.out.println(dp0);
-          //System.out.println(particle.xPrev);
           System.out.println(edge.v0.x);
-        }
+        }*/
       }
     }
     //ps.applyChanges();
@@ -65,8 +63,7 @@ public class StretchConstraint implements Force {
 
   @Override
   public ParticleSystem getParticleSystem() {
-    // TODO Auto-generated method stub
-    return null;
+    return ps;
   }
 
 }
