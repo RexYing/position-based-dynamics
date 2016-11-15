@@ -61,6 +61,12 @@ public class ParticleSystemBuilder implements GLEventListener {
 
   /** Position of the light. Fixed at the location of the camera. */
   private float[] lightPos = { 0f, 0f, 0f, 1f };
+  
+  private boolean updateView = true;
+  private double mvmatrix[] = new double[16];
+  private double projmatrix[] = new double[16];
+  private int viewport[] = new int[4];
+  private GLAutoDrawable myDrawable;
 
   /** Main constructor. Call start() to begin simulation. */
   ParticleSystemBuilder() {
@@ -143,7 +149,8 @@ public class ParticleSystemBuilder implements GLEventListener {
     gl.glLightfv(GL2.GL_LIGHT0, GL2.GL_DIFFUSE, lightDiffuse, 0);
     gl.glLightfv(GL2.GL_LIGHT0, GL2.GL_SPECULAR, lightSpecular, 0);
     gl.glEnable(GL2.GL_LIGHT0);
-
+    
+    myDrawable = drawable;
   }
 
   /** GLEventListener implementation */
@@ -214,7 +221,14 @@ public class ParticleSystemBuilder implements GLEventListener {
     gl.glVertex3d(0, 1, 0);
     gl.glVertex3d(0, 1, 1);
     gl.glEnd();
-
+    
+    if (updateView) {
+      gl.glGetDoublev(GL2.GL_MODELVIEW_MATRIX, mvmatrix, 0);
+      gl.glGetDoublev(GL2.GL_PROJECTION_MATRIX, projmatrix, 0);
+      gl.glGetIntegerv(GL2.GL_VIEWPORT, viewport, 0);
+      //updateView = false;
+    }
+    
     /// SIMULATE/DISPLAY HERE (Handled by BuilderGUI):
     gui.simulateAndDisplayScene(gl);
   }
@@ -252,7 +266,8 @@ public class ParticleSystemBuilder implements GLEventListener {
       guiFrame.pack();
       guiFrame.setVisible(true);
 
-      task = null; // Set default task here
+      //task = null; // Set default task here
+      task = new ManipulateParticleTask();
     }
 
     /**
@@ -280,6 +295,7 @@ public class ParticleSystemBuilder implements GLEventListener {
      * buttons.
      */
     class TaskSelector implements ActionListener {
+      
       /**
        * Resets ParticleSystem to undeformed/material state, disables the
        * simulation, and removes the active Task.
@@ -481,6 +497,40 @@ public class ParticleSystemBuilder implements GLEventListener {
       void reset() {
         taskSelector.resetToRest(); // sets task=null;
       }
+    }
+    
+    class ManipulateParticleTask extends Task {
+      
+      @Override
+      public void mousePressed(MouseEvent e) {
+        double winX = e.getX();
+        double winY = e.getY();
+        GL2 gl = myDrawable.getGL().getGL2();
+        
+        double realY = 0;// GL y coord pos
+        double wcoord[] = new double[4];// wx, wy, wz;// returned xyz coords
+
+        realY = viewport[3] - (int) winY - 1;
+        System.out.println("Coordinates at cursor are (" + winX + ", " + realY + ")");
+        
+        glu.gluUnProject(winX, realY, 0.0, mvmatrix, 0, projmatrix, 0, viewport, 0, 
+            wcoord, 0);
+        System.out.println("World coords at z=0.0 are ( " //
+                           + wcoord[0] + ", " + wcoord[1] + ", " + wcoord[2]
+                           + ")");
+
+        glu.gluUnProject(winX, realY, 1.0, mvmatrix, 0, projmatrix, 0, viewport, 0, 
+            wcoord, 0);
+        System.out.println("World coords at z=1.0 are ( " //
+                           + wcoord[0] + ", " + wcoord[1] + ", " + wcoord[2]
+                           + ")");
+      }
+
+      @Override
+      void reset() {
+        taskSelector.resetToRest(); // sets task=null;
+      }
+      
     }
 
   }
