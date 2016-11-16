@@ -24,4 +24,5 @@ public interface Constants
     public static final double STRETCH_STIFF     = 0.8;
     public static final double BEND_STIFF        = 0.2;
     public static final double DAMP_COEFF        = 0.1;
+    public static final double PRESSURE_COEFF    = 0.6;
 }
