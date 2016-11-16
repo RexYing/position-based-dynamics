@@ -8,6 +8,19 @@ import javax.vecmath.*;
  */
 public class Utils
 {
+  public static double pointLineDistance(Point3d p, Point3d lineStart, Point3d lineEnd) {
+    Vector3d lineDir = new Vector3d(lineEnd);
+    lineDir.sub(lineStart);
+    lineDir.normalize();
+    Vector3d pl = new Vector3d(lineEnd);
+    pl.sub(p);
+    Vector3d project = new Vector3d(lineDir);
+    project.scale(pl.dot(lineDir));
+    Vector3d perp = new Vector3d(pl);
+    perp.sub(project);
+    return perp.length();
+  }
+  
     /**
      * sum += scale*v
      */

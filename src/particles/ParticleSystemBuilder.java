@@ -66,7 +66,6 @@ public class ParticleSystemBuilder implements GLEventListener {
   private double mvmatrix[] = new double[16];
   private double projmatrix[] = new double[16];
   private int viewport[] = new int[4];
-  private GLAutoDrawable myDrawable;
 
   /** Main constructor. Call start() to begin simulation. */
   ParticleSystemBuilder() {
@@ -149,8 +148,6 @@ public class ParticleSystemBuilder implements GLEventListener {
     gl.glLightfv(GL2.GL_LIGHT0, GL2.GL_DIFFUSE, lightDiffuse, 0);
     gl.glLightfv(GL2.GL_LIGHT0, GL2.GL_SPECULAR, lightSpecular, 0);
     gl.glEnable(GL2.GL_LIGHT0);
-    
-    myDrawable = drawable;
   }
 
   /** GLEventListener implementation */
@@ -226,7 +223,7 @@ public class ParticleSystemBuilder implements GLEventListener {
       gl.glGetDoublev(GL2.GL_MODELVIEW_MATRIX, mvmatrix, 0);
       gl.glGetDoublev(GL2.GL_PROJECTION_MATRIX, projmatrix, 0);
       gl.glGetIntegerv(GL2.GL_VIEWPORT, viewport, 0);
-      //updateView = false;
+      updateView = false;
     }
     
     /// SIMULATE/DISPLAY HERE (Handled by BuilderGUI):
@@ -422,19 +419,23 @@ public class ParticleSystemBuilder implements GLEventListener {
           Vector2d vec = new Vector2d(eyePos.x - targetPos.x, eyePos.z - targetPos.z);
           eyePos.x = vec.x * Constants.CAM_COS_THETA - vec.y * Constants.CAM_SIN_THETA + targetPos.x;
           eyePos.z = vec.x * Constants.CAM_SIN_THETA + vec.y * Constants.CAM_COS_THETA + targetPos.z;
+          updateView = true;
           break;
         case KeyEvent.VK_RIGHT:
           vec = new Vector2d(eyePos.x - targetPos.x, eyePos.z - targetPos.z);
           eyePos.x = vec.x * Constants.CAM_COS_THETA + vec.y * Constants.CAM_SIN_THETA + targetPos.x;
           eyePos.z = -vec.x * Constants.CAM_SIN_THETA + vec.y * Constants.CAM_COS_THETA + targetPos.z;
+          updateView = true;
           break;
 
         // TODO(Optional): Make the camera orbit rather than translate?
         case KeyEvent.VK_UP:
           eyePos.y += 1;
+          updateView = true;
           break;
         case KeyEvent.VK_DOWN:
           eyePos.y -= 1;
+          updateView = true;
           break;
 
         default:
@@ -502,28 +503,26 @@ public class ParticleSystemBuilder implements GLEventListener {
     class ManipulateParticleTask extends Task {
       
       @Override
-      public void mousePressed(MouseEvent e) {
+      public void mouseClicked(MouseEvent e) {
         double winX = e.getX();
         double winY = e.getY();
-        GL2 gl = myDrawable.getGL().getGL2();
         
         double realY = 0;// GL y coord pos
-        double wcoord[] = new double[4];// wx, wy, wz;// returned xyz coords
+        double wcoord1[] = new double[4];
+        double wcoord2[] = new double[4];
 
         realY = viewport[3] - (int) winY - 1;
-        System.out.println("Coordinates at cursor are (" + winX + ", " + realY + ")");
         
         glu.gluUnProject(winX, realY, 0.0, mvmatrix, 0, projmatrix, 0, viewport, 0, 
-            wcoord, 0);
-        System.out.println("World coords at z=0.0 are ( " //
-                           + wcoord[0] + ", " + wcoord[1] + ", " + wcoord[2]
-                           + ")");
+            wcoord1, 0);
 
         glu.gluUnProject(winX, realY, 1.0, mvmatrix, 0, projmatrix, 0, viewport, 0, 
-            wcoord, 0);
-        System.out.println("World coords at z=1.0 are ( " //
-                           + wcoord[0] + ", " + wcoord[1] + ", " + wcoord[2]
-                           + ")");
+            wcoord2, 0);
+        
+        Particle p = PS.getNearestParticle(
+            new Point3d(wcoord1[0], wcoord1[1], wcoord1[2]), 
+            new Point3d(wcoord2[0], wcoord2[1], wcoord2[2]));
+        p.setHighlight(!p.getHighlight());
       }
 
       @Override

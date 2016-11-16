@@ -123,6 +123,7 @@ public class BendConstraint implements Force {
         Vector3d dp4 = new Vector3d(q4);
         dp4.scale(w4 * s / denominator * kIter);
 
+        /*
         if (edge.v0.getHighlight()) {
           
           System.out.println(dp1);
@@ -130,6 +131,7 @@ public class BendConstraint implements Force {
           System.out.println(dp3);
           System.out.println(dp4);
         }
+        */
 
         particle1.x.add(dp1);
         particle2.x.add(dp2);

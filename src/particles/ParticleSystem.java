@@ -147,6 +147,19 @@ public class ParticleSystem // implements Serializable
     }
     return minP;
   }
+  
+  public synchronized Particle getNearestParticle(Point3d l1, Point3d l2) {
+    double minDist = Double.MAX_VALUE;
+    Particle minP = null;
+    for (Particle particle : P) {
+      double dist = Utils.pointLineDistance(particle.x, l1, l2);
+      if (dist < minDist) {
+        minDist = dist;
+        minP = particle;
+      }
+    }
+    return minP;
+  }
 
   /**
    * Moves all particles to undeformed/materials positions, and sets all
@@ -231,6 +244,8 @@ public class ParticleSystem // implements Serializable
 
     time += dt;
   }
+  
+  
 
   /**
    * Displays Particle and Force objects. Modify how you like.
