@@ -35,17 +35,15 @@ import pqp.PQP_Model;
  * @author Eston Schweickart, February 2014
  */
 public class Mesh {
-  
+
   static {
     /*
-     * Need the library (libPQP.so in Linux, PQP.dll in Windows) to be put
-     * into java library path. In Linux, it is the LD_LIBRARY_PATH; in
-     * Windows, it is the PATH variable. Check using:
-     * System.getProperty("java.library.path");
+     * Need the library (libPQP.so in Linux, PQP.dll in Windows) to be put into
+     * java library path. In Linux, it is the LD_LIBRARY_PATH; in Windows, it is
+     * the PATH variable. Check using: System.getProperty("java.library.path");
      */
     System.loadLibrary("PQP");
   }
-
 
   private boolean init = false;
   private boolean fallback = false;
@@ -225,37 +223,29 @@ public class Mesh {
 
     Tuple2i faceIdxPair = PQPHelper.simpleCollide(pqpModel, PQPHelper.buildPQPModel(tmpV, tmpF));
     if (faceIdxPair != null) {
-      if (faceIdxPair.x >= vertices.size() || faceIdxPair.x < 0) {
+      if (faceIdxPair.x >= triangles.size() || faceIdxPair.x < 0) {
         System.out.println("index");
-        //return null;
+        // return null;
       }
       /*
-      // index does not make sense
-      if (faceIdxPair.x >= vertices.size() || faceIdxPair.x < 0) {
-        System.out.println("index");
-        particle.v.negate();
-        particle.v.scale(damp);
-      } else {
-        Vector3d direction = new Vector3d();
-        direction.sub(particle.x, p1);
-        direction.normalize();
-        Vector3d normal = triangles.get(faceIdxPair.x).getNormal();
-        Vector3d v = new Vector3d(normal);
-        v.scale(direction.dot(normal) * 2);
-        Vector3d reflectedDirection = new Vector3d();
-        reflectedDirection.sub(direction, v);
-        reflectedDirection.normalize();
-        particle.v.scale(particle.v.length() * damp, reflectedDirection);
-        particle.x = new Point3d(p1);
-      }
-      */
+       * // index does not make sense if (faceIdxPair.x >= vertices.size() ||
+       * faceIdxPair.x < 0) { System.out.println("index"); particle.v.negate();
+       * particle.v.scale(damp); } else { Vector3d direction = new Vector3d();
+       * direction.sub(particle.x, p1); direction.normalize(); Vector3d normal =
+       * triangles.get(faceIdxPair.x).getNormal(); Vector3d v = new
+       * Vector3d(normal); v.scale(direction.dot(normal) * 2); Vector3d
+       * reflectedDirection = new Vector3d(); reflectedDirection.sub(direction,
+       * v); reflectedDirection.normalize();
+       * particle.v.scale(particle.v.length() * damp, reflectedDirection);
+       * particle.x = new Point3d(p1); }
+       */
       Triangle triangle = triangles.get(faceIdxPair.x);
       return new CollisionConstraint(particle, triangle.intersectRay(p1, particle.x), triangle);
     } else {
       return null;
     }
   }
-  
+
   public void updateMass() {
 
     for (Vertex vertex : vertices) {
@@ -263,7 +253,7 @@ public class Mesh {
         vertex.m = 0;
       }
     }
-    
+
     for (Triangle triangle : triangles) {
       double area = triangle.area();
       triangle.v0.m += area / 3 * Constants.CLOTH_DENSITY;
@@ -272,7 +262,7 @@ public class Mesh {
     }
   }
 
-  public static Mesh CubeMesh(Point3d lowV, Point3d highV) {
+  public static Mesh CubeMesh(Point3d lowV, Point3d highV, boolean inward) {
     List<Vertex> verts = new ArrayList<>();
     verts.add(new Vertex(new Point3d(lowV), 0));
     verts.add(new Vertex(new Point3d(lowV.x, lowV.y, highV.z), 1));
@@ -284,18 +274,49 @@ public class Mesh {
     verts.add(new Vertex(new Point3d(highV), 7));
 
     List<Triangle> faces = new ArrayList<>();
+    if (inward) {
+      faces.add(new Triangle(verts.get(0), verts.get(1), verts.get(2)));
+      faces.add(new Triangle(verts.get(2), verts.get(1), verts.get(3)));
+      faces.add(new Triangle(verts.get(0), verts.get(4), verts.get(5)));
+      faces.add(new Triangle(verts.get(0), verts.get(5), verts.get(1)));
+      faces.add(new Triangle(verts.get(0), verts.get(2), verts.get(4)));
+      faces.add(new Triangle(verts.get(2), verts.get(6), verts.get(4)));
+      faces.add(new Triangle(verts.get(1), verts.get(5), verts.get(7)));
+      faces.add(new Triangle(verts.get(1), verts.get(7), verts.get(3)));
+      faces.add(new Triangle(verts.get(2), verts.get(7), verts.get(6)));
+      faces.add(new Triangle(verts.get(2), verts.get(3), verts.get(7)));
+      faces.add(new Triangle(verts.get(4), verts.get(7), verts.get(5)));
+      faces.add(new Triangle(verts.get(4), verts.get(6), verts.get(7)));
+    } else {
+      faces.add(new Triangle(verts.get(0), verts.get(2), verts.get(1)));
+      faces.add(new Triangle(verts.get(2), verts.get(3), verts.get(1)));
+      faces.add(new Triangle(verts.get(0), verts.get(5), verts.get(4)));
+      faces.add(new Triangle(verts.get(0), verts.get(1), verts.get(5)));
+      faces.add(new Triangle(verts.get(0), verts.get(4), verts.get(2)));
+      faces.add(new Triangle(verts.get(2), verts.get(4), verts.get(6)));
+      faces.add(new Triangle(verts.get(1), verts.get(7), verts.get(5)));
+      faces.add(new Triangle(verts.get(1), verts.get(3), verts.get(7)));
+      faces.add(new Triangle(verts.get(2), verts.get(6), verts.get(7)));
+      faces.add(new Triangle(verts.get(2), verts.get(7), verts.get(3)));
+      faces.add(new Triangle(verts.get(4), verts.get(5), verts.get(7)));
+      faces.add(new Triangle(verts.get(4), verts.get(7), verts.get(6)));
+    }
+
+    Mesh mesh = new Mesh();
+    mesh.vertices = verts;
+    mesh.triangles = faces;
+    mesh.update();
+    return mesh;
+  }
+
+  public static Mesh singleFaceMesh(Point3d v1, Point3d v2, Point3d v3) {
+    List<Vertex> verts = new ArrayList<>();
+    verts.add(new Vertex(v1, 0));
+    verts.add(new Vertex(v2, 1));
+    verts.add(new Vertex(v3, 2));
+
+    List<Triangle> faces = new ArrayList<>();
     faces.add(new Triangle(verts.get(0), verts.get(1), verts.get(2)));
-    faces.add(new Triangle(verts.get(2), verts.get(1), verts.get(3)));
-    faces.add(new Triangle(verts.get(0), verts.get(4), verts.get(5)));
-    faces.add(new Triangle(verts.get(0), verts.get(5), verts.get(1)));
-    faces.add(new Triangle(verts.get(0), verts.get(2), verts.get(4)));
-    faces.add(new Triangle(verts.get(2), verts.get(6), verts.get(4)));
-    faces.add(new Triangle(verts.get(1), verts.get(5), verts.get(7)));
-    faces.add(new Triangle(verts.get(1), verts.get(7), verts.get(3)));
-    faces.add(new Triangle(verts.get(2), verts.get(7), verts.get(6)));
-    faces.add(new Triangle(verts.get(2), verts.get(3), verts.get(7)));
-    faces.add(new Triangle(verts.get(4), verts.get(7), verts.get(5)));
-    faces.add(new Triangle(verts.get(4), verts.get(6), verts.get(7)));
 
     Mesh mesh = new Mesh();
     mesh.vertices = verts;

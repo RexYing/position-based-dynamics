@@ -181,16 +181,15 @@ public class ParticleSystem // implements Serializable
    * "Position Based Fluids" integrator here
    */
   public synchronized void advanceTime(double dt) {
-    double dtIter = dt / Constants.NUM_SOLVER_ITERATIONS;
+    for (Mesh mesh : M) {
+      mesh.updateMass();
+    }
+
 
     /// Clear force accumulators:
     for (Particle p : P) {
       p.f.set(0, 0, 0);
       p.xPrev = new Point3d(p.x);
-    }
-
-    for (Mesh mesh : M) {
-      mesh.updateMass();
     }
 
     for (Force force : F) {
@@ -237,11 +236,65 @@ public class ParticleSystem // implements Serializable
     for (Particle p : P) {
       Vector3d dp = new Vector3d();
       dp.sub(p.x, p.xPrev);
-      dp.scale(1.0 / dt);
+      dp.scale(0.95 / dt);
       p.v = dp;
     }
 
     time += dt;
+  }
+  
+  public void globalVelocityDamping(double dampCoeff, Mesh mesh) {
+    double sumMass = 0;
+    Vector3d xcm = new Vector3d();
+    Vector3d vcm = new Vector3d();
+    for (Particle p : mesh.vertices) {
+      sumMass += p.m;
+      vcm.scaleAdd(p.m, p.v);
+      xcm.scaleAdd(p.m, p.x);
+    }
+    xcm.scale(1 / sumMass);
+    vcm.scale(1 / sumMass);
+    
+    Vector3d l = new Vector3d();
+    GMatrix i = Utils.zeroMat(3, 3);
+    for (Particle p : mesh.vertices) {
+      Vector3d r = new Vector3d(p.x);
+      r.sub(xcm);
+      Vector3d mivi = new Vector3d(p.v);
+      mivi.scale(p.m);
+      Vector3d li = new Vector3d();
+      li.cross(r, mivi);
+      l.add(li);
+      
+      GMatrix rm = Utils.crossToMatrixOp(r);
+      GMatrix rmtrsp = new GMatrix(rm);
+      rmtrsp.transpose();
+      GMatrix ii = new GMatrix(rm); 
+      ii.mul(rmtrsp);
+      GMatrix idScaled = Utils.identityMatScaled(3, p.m);
+      ii.mul(idScaled);
+      i.add(ii);
+    }
+    System.out.println(l);
+    System.out.println(i);
+    i.invert();
+    GVector omega = new GVector(l);
+    omega.mul(i, omega);
+    Vector3d omega3 = new Vector3d(omega.getElement(0), omega.getElement(1), omega.getElement(2));
+    
+    for (Particle p : mesh.vertices) {
+      Vector3d dv = new Vector3d(vcm);
+      Vector3d omegaCr = new Vector3d();
+      
+      Vector3d r = new Vector3d(p.x);
+      r.sub(xcm);
+      omegaCr.cross(omega3, r);
+      dv.add(omegaCr);
+      dv.sub(p.v);
+      dv.scale(dampCoeff);
+      
+      p.v.add(dv);
+    }
   }
   
   

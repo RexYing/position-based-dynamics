@@ -34,6 +34,40 @@ public class Utils {
     return perp;
   }
 
+  public static GMatrix crossToMatrixOp(Vector3d v) {
+    double[] data = {0, -v.z, v.y, v.z, 0, -v.x, -v.y, v.x, 0};
+    return new GMatrix(3, 3, data);
+  }
+  
+  public static GMatrix zeroMat(int row, int col) {
+    double[] data = new double[row * col];
+    for (int i = 0; i < row * col; i++) {
+      data[i] = 0;
+    }
+    return new GMatrix(row, col, data);
+  }
+
+  public static GMatrix identityMat(int row) {
+    double[] data = new double[row * row];
+    for (int i = 0; i < row; i++) {
+      for (int j = 0; j < row; j++) {
+        data[i * row + j] = (i == j) ? 1 : 0;
+      }
+    }
+    return new GMatrix(row, row, data);
+  }
+  
+  public static GMatrix identityMatScaled(int row, double scale) {
+    double[] data = new double[row * row];
+    for (int i = 0; i < row; i++) {
+      for (int j = 0; j < row; j++) {
+        data[i * row + j] = (i == j) ? scale : 0;
+      }
+    }
+    return new GMatrix(row, row, data);
+  }
+  
+  
   /**
    * sum += scale*v
    */
@@ -42,6 +76,7 @@ public class Utils {
     sum.y += scale * v.y;
     sum.z += scale * v.z;
   }
+  
 
   /**
    *

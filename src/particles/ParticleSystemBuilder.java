@@ -67,12 +67,16 @@ public class ParticleSystemBuilder implements GLEventListener {
   private double mvmatrix[] = new double[16];
   private double projmatrix[] = new double[16];
   private int viewport[] = new int[4];
-
+  
+  private Mesh obstacle;
+  
   /** Main constructor. Call start() to begin simulation. */
   ParticleSystemBuilder() {
     PS = new ParticleSystem();
 
-    PS.addStaticMesh(Mesh.CubeMesh(new Point3d(0, 0, 0), new Point3d(1, 1, 1)));
+    PS.addStaticMesh(Mesh.CubeMesh(new Point3d(0, 0, 0), new Point3d(1, 1, 1), true));
+    obstacle = Mesh.CubeMesh(new Point3d(0.4, 0.0, 0.4), new Point3d(0.65, 0.1, 0.65), false);
+    PS.addStaticMesh(obstacle);
 
     PS.addForce(new Gravity(PS));
     
@@ -220,6 +224,8 @@ public class ParticleSystemBuilder implements GLEventListener {
     gl.glVertex3d(0, 1, 1);
     gl.glEnd();
     
+    drawMesh(obstacle, gl);
+    
     if (updateView) {
       gl.glGetDoublev(GL2.GL_MODELVIEW_MATRIX, mvmatrix, 0);
       gl.glGetDoublev(GL2.GL_PROJECTION_MATRIX, projmatrix, 0);
@@ -229,6 +235,17 @@ public class ParticleSystemBuilder implements GLEventListener {
     
     /// SIMULATE/DISPLAY HERE (Handled by BuilderGUI):
     gui.simulateAndDisplayScene(gl);
+  }
+  
+  public void drawMesh(Mesh mesh, GL2 gl) {
+    for (Triangle triangle : mesh.triangles) {
+      gl.glBegin(GL2.GL_LINE_LOOP);
+      
+      gl.glVertex3d(triangle.v0.x.x, triangle.v0.x.y, triangle.v0.x.z);
+      gl.glVertex3d(triangle.v1.x.x, triangle.v1.x.y, triangle.v1.x.z);
+      gl.glVertex3d(triangle.v2.x.x, triangle.v2.x.y, triangle.v2.x.z);
+      gl.glEnd();
+    }
   }
 
   /**
@@ -530,7 +547,6 @@ public class ParticleSystemBuilder implements GLEventListener {
             p.x, 
             worldCoordsFromWindowCoords(winX, winY, 0.0), 
             worldCoordsFromWindowCoords(winX, winY, 1.0));
-        System.out.println(moveDir);
         p.setHighlight(true);
         p.x.add(moveDir);
         
