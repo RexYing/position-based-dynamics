@@ -4,6 +4,7 @@ import java.util.*;
 
 import java.awt.*;
 import java.awt.event.*;
+import java.nio.FloatBuffer;
 
 import javax.swing.*;
 import javax.vecmath.*;
@@ -507,22 +508,32 @@ public class ParticleSystemBuilder implements GLEventListener {
         double winX = e.getX();
         double winY = e.getY();
         
-        double realY = 0;// GL y coord pos
-        double wcoord1[] = new double[4];
-        double wcoord2[] = new double[4];
-
-        realY = viewport[3] - (int) winY - 1;
+        Particle p = getClosestParticleFromWindowCoords(winX, winY);
+        if (p == null) {
+          System.out.println("No particles yet.");
+        } else {
+          p.setHighlight(!p.getHighlight());
+        }
+      }
+      
+      @Override
+      public void mouseDragged(MouseEvent e) {
+        double winX = e.getX();
+        double winY = e.getY();
         
-        glu.gluUnProject(winX, realY, 0.0, mvmatrix, 0, projmatrix, 0, viewport, 0, 
-            wcoord1, 0);
-
-        glu.gluUnProject(winX, realY, 1.0, mvmatrix, 0, projmatrix, 0, viewport, 0, 
-            wcoord2, 0);
+        Particle p = getClosestParticleFromWindowCoords(winX, winY);
+        if (p == null) {
+          System.out.println("No particles yet.");
+          return;
+        } 
+        Vector3d moveDir = Utils.perpVectorFromPointToLine(
+            p.x, 
+            worldCoordsFromWindowCoords(winX, winY, 0.0), 
+            worldCoordsFromWindowCoords(winX, winY, 1.0));
+        System.out.println(moveDir);
+        p.setHighlight(true);
+        p.x.add(moveDir);
         
-        Particle p = PS.getNearestParticle(
-            new Point3d(wcoord1[0], wcoord1[1], wcoord1[2]), 
-            new Point3d(wcoord2[0], wcoord2[1], wcoord2[2]));
-        p.setHighlight(!p.getHighlight());
       }
 
       @Override
@@ -530,6 +541,23 @@ public class ParticleSystemBuilder implements GLEventListener {
         taskSelector.resetToRest(); // sets task=null;
       }
       
+    }
+    
+    Particle getClosestParticleFromWindowCoords(double winX, double winY) {
+      return PS.getNearestParticle(
+          worldCoordsFromWindowCoords(winX, winY, 0.0), 
+          worldCoordsFromWindowCoords(winX, winY, 1.0));
+    }
+    
+    Point3d worldCoordsFromWindowCoords(double winX, double winY, double z) {
+      double realY = 0;// GL y coord pos
+      double wcoord[] = new double[4];
+
+      realY = viewport[3] - (int) winY - 1;
+      
+      glu.gluUnProject(winX, realY, z, mvmatrix, 0, projmatrix, 0, viewport, 0, 
+          wcoord, 0);
+      return new Point3d(wcoord[0], wcoord[1], wcoord[2]);
     }
 
   }

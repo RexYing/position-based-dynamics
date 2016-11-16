@@ -181,7 +181,6 @@ public class ParticleSystem // implements Serializable
    * "Position Based Fluids" integrator here
    */
   public synchronized void advanceTime(double dt) {
-    P.get(0).setHighlight(true);
     double dtIter = dt / Constants.NUM_SOLVER_ITERATIONS;
 
     /// Clear force accumulators:
