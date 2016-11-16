@@ -45,16 +45,16 @@ public class BendConstraint implements Force {
         Vertex particle4 = edge.t0.getDiffVertex(particle1, particle2);
 
         Point3d p1 = particle1.x;
-        double w1 = 1 / particle1.m;
+        double w1 = particle1.getPositionUpdateInvMass();
         Vector3d p2 = new Vector3d(particle2.x);
         p2.sub(p1);
-        double w2 = 1 / particle2.m;
+        double w2 = particle2.getPositionUpdateInvMass();
         Vector3d p3 = new Vector3d(particle3.x);
         p3.sub(p1);
-        double w3 = 1 / particle3.m;
+        double w3 = particle3.getPositionUpdateInvMass();
         Vector3d p4 = new Vector3d(particle4.x);
         p4.sub(p1);
-        double w4 = 1 / particle4.m;
+        double w4 = particle4.getPositionUpdateInvMass();
         
         n1.cross(p2, p3);
         n1.normalize();
@@ -122,7 +122,6 @@ public class BendConstraint implements Force {
         dp3.scale(w3 * s / denominator * kIter);
         Vector3d dp4 = new Vector3d(q4);
         dp4.scale(w4 * s / denominator * kIter);
-
         /*
         if (edge.v0.getHighlight()) {
           

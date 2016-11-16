@@ -259,8 +259,11 @@ public class Mesh {
   public void updateMass() {
 
     for (Vertex vertex : vertices) {
-      vertex.m = 0;
+      if (vertex.getHighlight()) {
+        vertex.m = 0;
+      }
     }
+    
     for (Triangle triangle : triangles) {
       double area = triangle.area();
       triangle.v0.m += area / 3 * Constants.CLOTH_DENSITY;

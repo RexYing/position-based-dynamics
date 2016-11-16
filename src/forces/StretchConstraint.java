@@ -36,8 +36,8 @@ public class StretchConstraint implements Force {
         diff.sub(edge.v0.x, edge.v1.x);
         Vector3d dp = new Vector3d(diff);
         dp.scale((Math.abs(diff.length()) - edge.restLength) / diff.length());
-        double w0 = 1 / edge.v0.m;
-        double w1 = 1 / edge.v1.m;
+        double w0 = edge.v0.getPositionUpdateInvMass();
+        double w1 = edge.v1.getPositionUpdateInvMass();
         Vector3d dp0 = new Vector3d(dp);
         Vector3d dp1 = new Vector3d(dp);
         dp0.scale(-w0 / (w0 + w1) * kIter);
@@ -47,12 +47,12 @@ public class StretchConstraint implements Force {
         edge.v0.x.add(dp0);
         edge.v1.x.add(dp1);
         /*if (edge.v0.getHighlight()) {
+          System.out.println(diff);
           System.out.println(dp0);
           System.out.println(edge.v0.x);
         }*/
       }
     }
-    //ps.applyChanges();
   }
 
   @Override

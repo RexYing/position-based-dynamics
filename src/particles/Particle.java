@@ -140,4 +140,12 @@ public class Particle
       dv = new Vector3d();
       df = new Vector3d();
     }
+    
+    public double getPositionUpdateInvMass() {
+      if (highlight) {
+        return 0;
+      } else {
+        return 1 / m;
+      }
+    }
 }
