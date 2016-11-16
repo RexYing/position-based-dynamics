@@ -1,0 +1,79 @@
+Position-based dynamics
+
+Author: Rex Ying
+
+This is an individual project for CS341C
+
+Main reference is the paper "Position Based Dynamics" by Muller et al.
+
+
+---------------------------------
+To run the code in eclipse, copy the library src/pqp/libPQP.so to /usr/local 
+(can also be other locations as long as it's in System.getProperty("java.library.path")
+
+The demo videos can be found in demo/ folder, and are in .ogv format.
+
+---------------------------------
+Particle-plane collisions
+
+Particle-plane collisions are implemented. The collision constraint formulation is the same as the
+PBD paper. See forces.CollisionConstraint.
+As seen from the video, the collision with the large box representing the world is strictly enforced
+at all time steps.
+
+--------------------------------
+Cloth constraints
+
+Both bending constraint and stretching constraint are implemented.
+See forces.BendConstraint and forces.StretchConstraint.
+
+The rest length for stretching is the length of edges in the initial mesh as input;
+The rest angle for bending is always pi/2. But this is a parameter to BendConstraint and can be
+adjusted if needed.
+
+--------------------------------
+Interaction
+
+Supports interactively picking and dragging of points.
+I used the glu.unproject method, and find the point that is closest to the ray computed using the
+unproject method.
+See particles.ParticleSystemBuilder.BuilderGUI.TaskSelecter.ManipulateParticleTask.
+
+--------------------------------
+Attachments
+
+Attachment of vertices is implemented. After interactively clicking a vertex, that vertex is
+attached in space. To detach that vertex, just click that vertex again.
+This can be seen from the demo out.ogv.
+
+--------------------------------
+Damping
+
+Damping is implemented using the method suggested by the PBD paper. 
+See particles.ParticleSystem#globalVelocityDamping method.
+
+--------------------------------
+Balloons
+
+Pressure constraint for closed volume is implemented. 
+See forces.PressureConstraint.
+
+--------------------------------
+Collisions with rigid obstacles
+
+Collision with rigid obstacles (mesh) is implemented. I used the PQP library, which provides the
+hierarchical bounding box data structure for collision detection.
+
+In this project, however, I only implemented collision detection between points (xi->pi). Therefore,
+as seen from the demo out2.ogv, some parts of the mesh could inter-penetrate the rigid obstacle (in
+this case a box at the bottom).
+
+However, note that all vertices of our mesh do not penetrate the obstacle (only faces/edges). Hence
+the problem can be solved by more densely sampling the mesh. Or, to make it more robust, one could
+implement edge/face collision detection.
+
+
+
+
+
+

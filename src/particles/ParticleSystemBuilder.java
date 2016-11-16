@@ -76,7 +76,7 @@ public class ParticleSystemBuilder implements GLEventListener {
 
     PS.addStaticMesh(Mesh.CubeMesh(new Point3d(0, 0, 0), new Point3d(1, 1, 1), true));
     obstacle = Mesh.CubeMesh(new Point3d(0.4, 0.0, 0.4), new Point3d(0.65, 0.1, 0.65), false);
-    PS.addStaticMesh(obstacle);
+    //PS.addStaticMesh(obstacle);
 
     PS.addForce(new Gravity(PS));
     
@@ -224,7 +224,7 @@ public class ParticleSystemBuilder implements GLEventListener {
     gl.glVertex3d(0, 1, 1);
     gl.glEnd();
     
-    drawMesh(obstacle, gl);
+    //drawMesh(obstacle, gl);
     
     if (updateView) {
       gl.glGetDoublev(GL2.GL_MODELVIEW_MATRIX, mvmatrix, 0);
